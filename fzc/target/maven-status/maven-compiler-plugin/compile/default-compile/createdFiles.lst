@@ -1,0 +1,9 @@
+com/xgn/fzc/canal/CanalService.class
+com/xgn/fzc/canal/CanalService$2.class
+com/xgn/fzc/kafka/CanalRowChangeDeserializer.class
+com/xgn/fzc/kafka/KafkaService.class
+com/xgn/fzc/canal/CanalRunner.class
+com/xgn/fzc/async/AsyncService.class
+com/xgn/fzc/canal/CanalService$1.class
+com/xgn/fzc/kafka/CanalRowChangeSerializer.class
+com/xgn/fzc/FzcApplication.class

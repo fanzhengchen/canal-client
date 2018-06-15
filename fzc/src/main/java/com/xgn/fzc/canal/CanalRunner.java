@@ -1,14 +1,10 @@
-package com.xgn.fzc;
+package com.xgn.fzc.canal;
 
-import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.CanalConnectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-
-import java.net.InetSocketAddress;
 
 /**
  * Created with IntelliJ IDEA.

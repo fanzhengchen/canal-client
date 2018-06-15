@@ -1,23 +1,28 @@
-package com.xgn.fzc;
+package com.xgn.fzc.canal;
+
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.*;
 
 
 /**
@@ -29,20 +34,23 @@ import java.util.concurrent.Executors;
  * @author: MarkFan
  * @since v1.0.0
  */
-@Service
 @Slf4j
+@Service
 public class CanalService {
 
     protected static final String SEP = SystemUtils.LINE_SEPARATOR;
 
     protected static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
+
     @Autowired
     private CanalConnector connector;
 
+    @Resource
+    KafkaTemplate<String, CanalEntry.RowChange> kafkaTemplate;
+
     @Value("${canal.destination}")
     private String destination;
-
 
     private Thread thread;
 
@@ -82,8 +90,13 @@ public class CanalService {
             @Override
             public void run() {
                 process();
+                log.error("after process");
             }
         });
+
+
+
+        log.info("canal start thread {}", thread);
 
         thread.setUncaughtExceptionHandler(handler);
         thread.start();
@@ -118,6 +131,7 @@ public class CanalService {
                 MDC.put("destination", destination);
                 connector.connect();
                 connector.subscribe();
+                connector.rollback();
                 while (running) {
                     Message message = connector.getWithoutAck(blockSize);
                     long batchId = message.getId();
@@ -171,8 +185,10 @@ public class CanalService {
 
     private void printEntries(List<CanalEntry.Entry> entries) {
         for (CanalEntry.Entry entry : entries) {
+
+
             long executeTime = entry.getHeader().getExecuteTime();
-            long delayTime = new Date().getTime() - executeTime;
+            long delayTime = System.currentTimeMillis() - executeTime;
             Date date = new Date(entry.getHeader().getExecuteTime());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -218,6 +234,7 @@ public class CanalService {
                 } catch (Exception e) {
                     throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
                 }
+                kafkaTemplate.send("canal", rowChage);
 
                 CanalEntry.EventType eventType = rowChage.getEventType();
 
@@ -233,7 +250,9 @@ public class CanalService {
                     continue;
                 }
 
-                log.info("sql ---> {}", rowChage.getSql() + SEP);
+
+                log.info("rowChange -> {} {}", rowChage.getSql(), rowChage.hasSql());
+
                 for (CanalEntry.RowData rowData : rowChage.getRowDatasList()) {
                     if (eventType == CanalEntry.EventType.DELETE) {
                         printColumn(rowData.getBeforeColumnsList());
@@ -256,7 +275,7 @@ public class CanalService {
                 builder.append("    update=" + column.getUpdated());
             }
             builder.append(SEP);
-            log.info(builder.toString());
+            // log.info(builder.toString());
         }
     }
 
