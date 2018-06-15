@@ -8,8 +8,11 @@ import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.MDC;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -18,10 +21,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.*;
 
 
@@ -36,7 +36,7 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Service
-public class CanalService {
+public class CanalService implements ApplicationContextAware {
 
     protected static final String SEP = SystemUtils.LINE_SEPARATOR;
 
@@ -55,6 +55,8 @@ public class CanalService {
     private Thread thread;
 
     private volatile boolean running;
+
+    private ApplicationContext applicationContext;
 
     protected static String context_format = null;
     protected static String row_format = null;
@@ -93,7 +95,6 @@ public class CanalService {
                 log.error("after process");
             }
         });
-
 
 
         log.info("canal start thread {}", thread);
@@ -228,40 +229,42 @@ public class CanalService {
             }
 
             if (entry.getEntryType() == CanalEntry.EntryType.ROWDATA) {
-                CanalEntry.RowChange rowChage = null;
-                try {
-                    rowChage = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-                } catch (Exception e) {
-                    throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
-                }
-                kafkaTemplate.send("canal", rowChage);
-
-                CanalEntry.EventType eventType = rowChage.getEventType();
-
-                log.info(row_format,
-                        new Object[]{entry.getHeader().getLogfileName(),
-                                String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
-                                entry.getHeader().getTableName(), eventType,
-                                String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
-                                String.valueOf(delayTime)});
-
-                if (eventType == CanalEntry.EventType.QUERY || rowChage.getIsDdl()) {
-                    log.info(" sql ----> " + rowChage.getSql() + SEP);
-                    continue;
-                }
-
-
-                log.info("rowChange -> {} {}", rowChage.getSql(), rowChage.hasSql());
-
-                for (CanalEntry.RowData rowData : rowChage.getRowDatasList()) {
-                    if (eventType == CanalEntry.EventType.DELETE) {
-                        printColumn(rowData.getBeforeColumnsList());
-                    } else if (eventType == CanalEntry.EventType.INSERT) {
-                        printColumn(rowData.getAfterColumnsList());
-                    } else {
-                        printColumn(rowData.getAfterColumnsList());
-                    }
-                }
+                Optional.ofNullable(applicationContext)
+                        .ifPresent(context -> context.publishEvent(entry));
+//                CanalEntry.RowChange rowChage = null;
+//                try {
+//                    rowChage = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
+//                } catch (Exception e) {
+//                    throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
+//                }
+//                kafkaTemplate.send("canal", rowChage);
+//
+//                CanalEntry.EventType eventType = rowChage.getEventType();
+//
+//                log.info(row_format,
+//                        new Object[]{entry.getHeader().getLogfileName(),
+//                                String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
+//                                entry.getHeader().getTableName(), eventType,
+//                                String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
+//                                String.valueOf(delayTime)});
+//
+//                if (eventType == CanalEntry.EventType.QUERY || rowChage.getIsDdl()) {
+//                    log.info(" sql ----> " + rowChage.getSql() + SEP);
+//                    continue;
+//                }
+//
+//
+//                log.info("rowChange -> {} {}", rowChage.getSql(), rowChage.hasSql());
+//
+//                for (CanalEntry.RowData rowData : rowChage.getRowDatasList()) {
+//                    if (eventType == CanalEntry.EventType.DELETE) {
+//                        printColumn(rowData.getBeforeColumnsList());
+//                    } else if (eventType == CanalEntry.EventType.INSERT) {
+//                        printColumn(rowData.getAfterColumnsList());
+//                    } else {
+//                        printColumn(rowData.getAfterColumnsList());
+//                    }
+//                }
             }
         }
     }
@@ -286,5 +289,10 @@ public class CanalService {
     @PostConstruct
     public void onDestroy() {
         stop();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
