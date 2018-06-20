@@ -32,12 +32,6 @@ public class KafkaService {
     @KafkaListener(topics = "canal")
     public void receive(ConsumerRecord<String, CanalEntry.RowChange> record) {
 
-        Optional.ofNullable(record)
-                .ifPresent(consumer -> {
-                    CanalEntry.RowChange rowChange = consumer.value();
-
-                    log.info("kafka {} {}", consumer.topic(), consumer.value());
-                });
     }
 
 

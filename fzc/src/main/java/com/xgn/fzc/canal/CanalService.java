@@ -230,7 +230,10 @@ public class CanalService implements ApplicationContextAware {
 
             if (entry.getEntryType() == CanalEntry.EntryType.ROWDATA) {
                 Optional.ofNullable(applicationContext)
-                        .ifPresent(context -> context.publishEvent(entry));
+                        .ifPresent(context -> {
+                            log.info("push event {} {}", entry, context);
+                            context.publishEvent(new CanalEvent(entry));
+                        });
 //                CanalEntry.RowChange rowChage = null;
 //                try {
 //                    rowChage = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
