@@ -2,9 +2,11 @@ package com.xgn.fzc;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
+import com.xgn.fzc.config.CanalProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,20 +24,18 @@ import java.util.concurrent.*;
 
 @Slf4j
 @EnableScheduling
+@MapperScan("com.xgn.fzc.mapper")
 @SpringBootApplication
 public class FzcApplication {
+
+
+
 
     public static void main(String[] args) {
         SpringApplication.run(FzcApplication.class, args);
     }
 
 
-    @Bean
-    public CanalConnector canalConnector() {
-        return CanalConnectors.newSingleConnector(
-                new InetSocketAddress("172.16.7.87", 11111), "example", "",
-                "");
-    }
 
 
 

@@ -4,6 +4,7 @@ import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.xgn.fzc.config.CanalProperties;
 import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.SystemUtils;
@@ -42,15 +43,14 @@ public class CanalService implements ApplicationContextAware {
 
     protected static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
-
     @Autowired
     private CanalConnector connector;
 
+    @Autowired
+    CanalProperties canalProperties;
+
     @Resource
     KafkaTemplate<String, CanalEntry.RowChange> kafkaTemplate;
-
-    @Value("${canal.destination}")
-    private String destination;
 
     private Thread thread;
 
@@ -126,10 +126,9 @@ public class CanalService implements ApplicationContextAware {
     private void process() {
         int blockSize = 5 << 10;
         log.info("canal client start");
-        System.out.println("canal client start sout");
         while (running) {
             try {
-                MDC.put("destination", destination);
+                MDC.put("destination", canalProperties.getDestination());
                 connector.connect();
                 connector.subscribe();
                 connector.rollback();
@@ -187,7 +186,6 @@ public class CanalService implements ApplicationContextAware {
     private void printEntries(List<CanalEntry.Entry> entries) {
         for (CanalEntry.Entry entry : entries) {
 
-
             long executeTime = entry.getHeader().getExecuteTime();
             long delayTime = System.currentTimeMillis() - executeTime;
             Date date = new Date(entry.getHeader().getExecuteTime());
@@ -234,56 +232,11 @@ public class CanalService implements ApplicationContextAware {
                             log.info("push event {} {}", entry, context);
                             context.publishEvent(new CanalEvent(entry));
                         });
-//                CanalEntry.RowChange rowChage = null;
-//                try {
-//                    rowChage = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-//                } catch (Exception e) {
-//                    throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
-//                }
-//                kafkaTemplate.send("canal", rowChage);
-//
-//                CanalEntry.EventType eventType = rowChage.getEventType();
-//
-//                log.info(row_format,
-//                        new Object[]{entry.getHeader().getLogfileName(),
-//                                String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
-//                                entry.getHeader().getTableName(), eventType,
-//                                String.valueOf(entry.getHeader().getExecuteTime()), simpleDateFormat.format(date),
-//                                String.valueOf(delayTime)});
-//
-//                if (eventType == CanalEntry.EventType.QUERY || rowChage.getIsDdl()) {
-//                    log.info(" sql ----> " + rowChage.getSql() + SEP);
-//                    continue;
-//                }
-//
-//
-//                log.info("rowChange -> {} {}", rowChage.getSql(), rowChage.hasSql());
-//
-//                for (CanalEntry.RowData rowData : rowChage.getRowDatasList()) {
-//                    if (eventType == CanalEntry.EventType.DELETE) {
-//                        printColumn(rowData.getBeforeColumnsList());
-//                    } else if (eventType == CanalEntry.EventType.INSERT) {
-//                        printColumn(rowData.getAfterColumnsList());
-//                    } else {
-//                        printColumn(rowData.getAfterColumnsList());
-//                    }
-//                }
+
             }
         }
     }
 
-    protected void printColumn(List<CanalEntry.Column> columns) {
-        for (CanalEntry.Column column : columns) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(column.getName() + " : " + column.getValue());
-            builder.append("    type=" + column.getMysqlType());
-            if (column.getUpdated()) {
-                builder.append("    update=" + column.getUpdated());
-            }
-            builder.append(SEP);
-            // log.info(builder.toString());
-        }
-    }
 
     public boolean isRunning() {
         return running;

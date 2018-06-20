@@ -24,4 +24,7 @@
         <appender-ref ref="console"/>
         <appender-ref ref="xgn"/>
     </root>
+
+    <logger name="com.xgn.fzc" level="INFO"/>
+    <logger name="com.xgn.fzc.mapper" level="DEBUG"/>
 </configuration>
