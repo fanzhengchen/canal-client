@@ -43,7 +43,10 @@ public class CanalEventListener implements ApplicationListener<CanalEvent> {
         CanalEntry.RowChange rowChange = getRowChangeFromEntry(entry);
         log.info("dbName:{} tableName:{} {}", dbName, tableName, rowChange.getEventType());
         final CanalEntry.EventType eventType = rowChange.getEventType();
-        List<String> commands = handleRowChange(rowChange, tableName, dbName, eventType);
+        /**
+         * 处理canal entry 并将数据同步到目标数据库
+         */
+        handleRowChange(rowChange, tableName, dbName, eventType);
 
 
     }
@@ -147,7 +150,6 @@ public class CanalEventListener implements ApplicationListener<CanalEvent> {
 
             commands.add(sql);
         }
-
 
         return commands;
     }
