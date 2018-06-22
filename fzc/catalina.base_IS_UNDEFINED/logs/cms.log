@@ -1765,7 +1765,7 @@
 	ssl.truststore.location = null
 	ssl.truststore.password = null
 	ssl.truststore.type = JKS
-	value.deserializer = class com.xgn.fzc.kafka.CanalRowChangeDeserializer
+	value.deserializer = class com.xgn.fzc.kafka.CanalEntryDeserializer
 
 17:31:13.886 [main] DEBUG o.a.k.clients.consumer.KafkaConsumer.debug(177) - [Consumer clientId=consumer-1, groupId=defaultGroup] Initializing the Kafka consumer
 17:31:13.902 [main] DEBUG org.apache.kafka.clients.Metadata.update(270) - Updated cluster metadata version 1 to Cluster(id = null, nodes = [172.16.7.108:9092 (id: -3 rack: null), 172.16.7.23:9092 (id: -1 rack: null), 172.16.7.87:9092 (id: -2 rack: null)], partitions = [])
@@ -2879,7 +2879,7 @@ Unconditional classes:
 	ssl.truststore.location = null
 	ssl.truststore.password = null
 	ssl.truststore.type = JKS
-	value.deserializer = class com.xgn.fzc.kafka.CanalRowChangeDeserializer
+	value.deserializer = class com.xgn.fzc.kafka.CanalEntryDeserializer
 
 17:31:38.722 [main] INFO  o.a.kafka.common.utils.AppInfoParser.<init>(109) - Kafka version : 1.0.1
 17:31:38.722 [main] INFO  o.a.kafka.common.utils.AppInfoParser.<init>(110) - Kafka commitId : c0518aa65f25317e
@@ -2978,7 +2978,7 @@ Unconditional classes:
 	ssl.truststore.location = null
 	ssl.truststore.password = null
 	ssl.truststore.type = JKS
-	value.deserializer = class com.xgn.fzc.kafka.CanalRowChangeDeserializer
+	value.deserializer = class com.xgn.fzc.kafka.CanalEntryDeserializer
 
 17:34:40.260 [main] INFO  o.a.kafka.common.utils.AppInfoParser.<init> 109 - Kafka version : 1.0.1
 17:34:40.261 [main] INFO  o.a.kafka.common.utils.AppInfoParser.<init> 110 - Kafka commitId : c0518aa65f25317e
@@ -3077,7 +3077,7 @@ Unconditional classes:
 	ssl.truststore.location = null
 	ssl.truststore.password = null
 	ssl.truststore.type = JKS
-	value.deserializer = class com.xgn.fzc.kafka.CanalRowChangeDeserializer
+	value.deserializer = class com.xgn.fzc.kafka.CanalEntryDeserializer
 
 17:34:55.912 [main] INFO  o.a.k.c.u.AppInfoParser.<init> 109 - Kafka version : 1.0.1
 17:34:55.913 [main] INFO  o.a.k.c.u.AppInfoParser.<init> 110 - Kafka commitId : c0518aa65f25317e
@@ -3177,7 +3177,7 @@ Unconditional classes:
 	ssl.truststore.location = null
 	ssl.truststore.password = null
 	ssl.truststore.type = JKS
-	value.deserializer = class com.xgn.fzc.kafka.CanalRowChangeDeserializer
+	value.deserializer = class com.xgn.fzc.kafka.CanalEntryDeserializer
 
 17:37:59.788 [main] INFO  o.a.k.common.utils.AppInfoParser - [AppInfoParser.java:109] - Kafka version : 1.0.1
 17:37:59.789 [main] INFO  o.a.k.common.utils.AppInfoParser - [AppInfoParser.java:110] - Kafka commitId : c0518aa65f25317e

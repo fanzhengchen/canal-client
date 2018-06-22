@@ -2,6 +2,7 @@ package com.xgn.fzc;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.xgn.fzc.config.CanalProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,6 +30,8 @@ import java.util.concurrent.*;
 public class FzcApplication {
 
 
+    @Autowired
+    KafkaTemplate kafkaTemplate;
 
 
     public static void main(String[] args) {

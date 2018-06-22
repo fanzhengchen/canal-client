@@ -16,8 +16,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.concurrent.FailureCallback;
+import org.springframework.util.concurrent.SuccessCallback;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -50,7 +53,7 @@ public class CanalService implements ApplicationContextAware {
     CanalProperties canalProperties;
 
     @Resource
-    KafkaTemplate<String, CanalEntry.RowChange> kafkaTemplate;
+    KafkaTemplate kafkaTemplate;
 
     private Thread thread;
 

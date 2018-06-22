@@ -7,10 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,11 +32,17 @@ public class CanalEventListener implements ApplicationListener<CanalEvent> {
     @Autowired
     SqlMapper sqlMapper;
 
+    @Autowired
+    KafkaTemplate kafkaTemplate;
+
 
     @Override
     public void onApplicationEvent(CanalEvent event) {
         Entry entry = event.getSource();
-        log.info("{}", entry);
+        log.info("{} {}", entry, entry.getSerializedSize());
+
+        String key = UUID.randomUUID().toString();
+        kafkaTemplate.send("ca", entry);
 
         CanalEntry.Header header = entry.getHeader();
         String dbName = header.getSchemaName();

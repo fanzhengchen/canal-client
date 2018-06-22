@@ -8,10 +8,14 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.Assert;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -27,6 +31,8 @@ public class FzcApplicationTests {
     @Autowired
     SqlMapper sqlMapper;
 
+
+
     @Test
     public void contextLoads() {
     }
@@ -38,19 +44,30 @@ public class FzcApplicationTests {
     }
 
     @Test
-    public void testInsert(){
+    public void testInsert() {
         String sql = "INSERT INTO cms.cms_page (page_id,page_name,status,create_time,min_version,type,platform,editor,create_by,edit_time,project_id,page_info,shop_id,is_delete) VALUES ('dfe1952f-ad58-4294-8e00-f99417e4d69e','hjhjh','DRAFT','2018-06-20 16:39:01','89','HOME','APP','xiansheng','xiansheng','2018-06-21 00:39:01','fresh','','8','0');";
         sqlMapper.insert(sql);
     }
 
     @Test
-    public void testDelete(){
+    public void testDelete() {
         String sql = "DELETE FROM cms.cms_page WHERE page_id='c6ca7cb9-9658-4c75-8290-640ca284e714';";
         sqlMapper.delete(sql);
     }
+
     @Test
     public void selectCmsPage() {
         List<CmsPage> pageList = pageMapper.selectCmsPage();
+
+    }
+
+    @Test
+    public void testAssert() {
+        Assert.isTrue(1 == 1, "dddd");
+    }
+
+    @Test
+    public void testHiveJdbcTemplate(){
 
     }
 
