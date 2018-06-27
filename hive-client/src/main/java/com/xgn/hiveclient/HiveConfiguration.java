@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,4 +44,8 @@ public class HiveConfiguration {
     public JdbcTemplate hiveJdbcTemplate(@Qualifier("hiveJdbcDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
+
+
+
+
 }
