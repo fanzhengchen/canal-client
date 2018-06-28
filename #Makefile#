@@ -1,0 +1,8 @@
+
+define module_package
+  mvn --projects $(1) clean package
+endef
+
+
+fzc_package:
+	$(call module_package, fzc)
