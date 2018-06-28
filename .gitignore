@@ -4,6 +4,7 @@
 */target
 fzc/catalina.base_IS_UNDEFINED
 catalina.base_IS_UNDEFINED/
+hive-client/catalina.base_IS_UNDEFINED
 
 
 /target/
@@ -30,4 +31,5 @@ catalina.base_IS_UNDEFINED/
 /dist/
 /nbdist/
 /.nb-gradle/
+
 
