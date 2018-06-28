@@ -1,12 +1,14 @@
 
 
+args := -Dmaven.test.skip=true -Pdev
+
 
 define module_package
-mvn --projects $(1) clean package -Dmaven.test.skip=true
+mvn --projects $(1) clean package $(args)
 endef
 
 define module_install
-mvn --projects $(1) clean install -Dmaven.test.skip=true
+mvn --projects $(1) clean install $(args)
 endef
 
 
@@ -23,8 +25,9 @@ kafka_config_install:clean_install
 	$(call module_install,kafka-config)
 
 print:
+	@echo $(args)
 	@echo $(PATH)
 
 
 clean_install:
-	mvn clean install -Dmaven.test.skip=true
+	mvn clean install $(args)
