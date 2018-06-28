@@ -33,7 +33,7 @@ public class HiveTask implements ApplicationRunner {
     @Qualifier("hiveJdbcTemplate")
     JdbcTemplate jdbcTemplate;
 
-    @Scheduled(fixedRate = 1800_000)
+    @Scheduled(fixedRate = 100_000)
     public void updateHbase() {
         log.info("update hbase");
         jdbcTemplate.execute("INSERT OVERWRITE TABLE " +
