@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,8 @@ public class CanalEventListener implements ApplicationListener<CanalEvent> {
 
         String key = UUID.randomUUID().toString();
         kafkaTemplate.send("ca", entry);
+
+
 
         CanalEntry.Header header = entry.getHeader();
         String dbName = header.getSchemaName();

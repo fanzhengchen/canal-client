@@ -1,16 +1,16 @@
 package com.xgn.hiveclient.service;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.xgn.hiveclient.util.XgnEventExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -34,6 +34,9 @@ public class HiveService implements ApplicationRunner {
     @Qualifier("hiveJdbcTemplate")
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    XgnEventExecutor eventExecutor;
+
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -43,11 +46,12 @@ public class HiveService implements ApplicationRunner {
     }
 
     @KafkaListener(topics = {"ca"})
-    public void receiveKafkaTopics(ConsumerRecord<?, CanalEntry.Entry> record) {
-        log.info("receive kafka message {}", record);
+    public void receiveKafkaTopics(ConsumerRecord<?, CanalEntry.Entry> record,
+                                   Acknowledgment ack) {
+        log.info("receive kafka message {} {}", record, ack);
 
+        record.headers();
         CanalEntry.Entry entry = record.value();
-
 
 
         CanalEntry.Header header = entry.getHeader();
@@ -60,7 +64,15 @@ public class HiveService implements ApplicationRunner {
         /**
          * 处理canal entry 并将数据同步到目标数据库
          */
-        handleRowChange(rowChange, tableName, dbName, eventType);
+        eventExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                handleRowChange(rowChange, tableName, dbName, eventType);
+                ack.acknowledge();
+            }
+        });
+
+
     }
 
     CanalEntry.RowChange getRowChangeFromEntry(CanalEntry.Entry entry) {
@@ -70,7 +82,6 @@ public class HiveService implements ApplicationRunner {
             throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
         }
     }
-
 
 
     /**
@@ -83,13 +94,14 @@ public class HiveService implements ApplicationRunner {
      * @return
      */
     private void handleRowChange(CanalEntry.RowChange rowChange, String tableName, String dbName,
-                                         CanalEntry.EventType eventType) {
+                                 CanalEntry.EventType eventType) {
 
         List<String> commands = new ArrayList<>();
 
         List<CanalEntry.RowData> rowDatas = rowChange.getRowDatasList();
 
 
+        log.info("handle row change");
         for (CanalEntry.RowData rowData : rowDatas) {
 
             boolean isFirst = true;
@@ -130,7 +142,7 @@ public class HiveService implements ApplicationRunner {
                 sql = String.format("UPDATE %s.%s SET %s WHERE %s='%s'", dbName, tableName,
                         updateStr, primaryKey, primaryKeyValue);
 
-                log.info("update sql {}",sql);
+                log.info("update sql {}", sql);
                 jdbcTemplate.execute(sql);
 
             } else if (CanalEntry.EventType.INSERT.equals(eventType)) {
