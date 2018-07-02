@@ -8,11 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.CallableStatementCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
+import java.sql.CallableStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +71,9 @@ public class HiveService implements ApplicationRunner {
         eventExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                handleRowChange(rowChange, tableName, dbName, eventType);
+                String[] batches = handleRowChange(rowChange, tableName, dbName, eventType);
+                jdbcTemplate.batchUpdate(batches);
+                log.info("info batch update {}",batches);
                 ack.acknowledge();
             }
         });
@@ -93,8 +99,8 @@ public class HiveService implements ApplicationRunner {
      * @param eventType
      * @return
      */
-    private void handleRowChange(CanalEntry.RowChange rowChange, String tableName, String dbName,
-                                 CanalEntry.EventType eventType) {
+    private String[] handleRowChange(CanalEntry.RowChange rowChange, String tableName, String dbName,
+                                     CanalEntry.EventType eventType) {
 
         List<String> commands = new ArrayList<>();
 
@@ -143,7 +149,7 @@ public class HiveService implements ApplicationRunner {
                         updateStr, primaryKey, primaryKeyValue);
 
                 log.info("update sql {}", sql);
-                jdbcTemplate.execute(sql);
+
 
             } else if (CanalEntry.EventType.INSERT.equals(eventType)) {
                 StringBuilder columnStr = new StringBuilder();
@@ -167,20 +173,17 @@ public class HiveService implements ApplicationRunner {
                         dbName, tableName, columnStr.toString(), valuesStr.toString());
                 log.info("insert sql: {}", sql);
 
-                jdbcTemplate.execute(sql);
 
             } else if (CanalEntry.EventType.DELETE.equals(eventType)) {
                 sql = String.format("DELETE FROM %s.%s WHERE %s='%s'", dbName, tableName,
                         primaryKey, primaryKeyValue);
 
-
             }
-            log.info("evenType:{}  execute sql: {}", eventType, sql);
 
+            commands.add(sql);
 
         }
-
-
+        return commands.toArray(new String[0]);
     }
 
 }

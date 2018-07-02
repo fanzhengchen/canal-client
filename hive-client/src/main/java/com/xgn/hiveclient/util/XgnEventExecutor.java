@@ -5,10 +5,7 @@ import org.springframework.stereotype.Component;
 import sun.jvm.hotspot.utilities.Assert;
 
 import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,6 +22,7 @@ public class XgnEventExecutor implements Executor {
 
     private Thread thread;
     private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(Integer.MAX_VALUE);
+    private ConcurrentSkipListSet<String> skipListSet;
 
 
     private boolean isInEventLoop() {
